@@ -41,6 +41,7 @@ images_list = { 'ubuntu14': 'Canonical:UbuntuServer:14.04.5-LTS:14.04.201808180'
          'debian9': 'credativ:Debian:9:latest',
          'redhat6': 'RedHat:RHEL:6.9:latest',
          'redhat7': 'RedHat:RHEL:7.3:latest',
+         'redhat8': 'RedHat:RHEL:8.1:latest',
          'centos6': 'OpenLogic:CentOS:6.9:latest',
          'centos7': 'OpenLogic:CentOS:7.5:latest',
          # 'oracle6': 'Oracle:Oracle-Linux:6.9:latest',
@@ -108,7 +109,7 @@ ssh_public = ssh_private + '.pub'
 if parameters['old version']:
     old_version = parameters['old version']
 
-# Sometimes Azure VM images become unavailable or are unavailable in certain regions, lets check...
+# Sometimes Azure VM images become unavailable or are unavailable in certain regions, lets check ...
 for distname, image in images.iteritems():
     img_publisher, _, sku, _ = image.split(':')
     if subprocess.check_output('az vm image list --all --location {0} --publisher {1} --sku {2}'.format(location, img_publisher, sku), shell=True) == '[]\n':

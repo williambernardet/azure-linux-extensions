@@ -178,30 +178,20 @@ def enable_dsc():
     """Enable DSC"""
     os.system('/opt/microsoft/omsconfig/Scripts/OMS_MetaConfigHelper.py --enable')
 
-def disable_dsc():
-    """Disable DSC"""
-    os.system('/opt/microsoft/omsconfig/Scripts/OMS_MetaConfigHelper.py --disable')
-    Pending_mof = '/etc/opt/omi/conf/omsconfig/configuration/Pending.mof'
-    Current_mof = '/etc/opt/omi/conf/omsconfig/configuration/Pending.mof'
-    if os.path.isfile(Pending_mof) or os.path.isfile(Current_mof):
-        os.remove(Pending_mof)
-        os.remove(Current_mof)
+def run_dsc():
+    """Run DSC to pull the workspace configuration."""
+    print('Pulling configuration from DSC ...')
+    cmd = 'sudo su omsagent -c "python /opt/microsoft/omsconfig/Scripts/PerformRequiredConfigurationChecks.py"'
+    output = exec_command(cmd, stderr=subprocess.STDOUT)
+    write_log_command(cmd)
+    write_log_output(output)
 
 def copy_config_files():
     """Convert, copy, and set permissions for agent configuration files."""
-    os.system('cat /home/scratch/perf.conf >> /etc/opt/microsoft/omsagent/{0}/conf/omsagent.conf \
-            && cp /home/scratch/rsyslog-oms.conf /etc/opt/omi/conf/omsconfig/rsyslog-oms.conf \
-            && cp /home/scratch/rsyslog-oms.conf /etc/rsyslog.d/95-omsagent.conf \
-            && chown omsagent:omiusers /etc/rsyslog.d/95-omsagent.conf \
-            && chmod 644 /etc/rsyslog.d/95-omsagent.conf \
-            && cp /home/scratch/customlog.conf /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/customlog.conf \
-            && chown omsagent:omiusers /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/customlog.conf \
-            && cp /etc/opt/microsoft/omsagent/sysconf/omsagent.d/apache_logs.conf /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/apache_logs.conf \
+    os.system('cp /etc/opt/microsoft/omsagent/sysconf/omsagent.d/apache_logs.conf /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/apache_logs.conf \
             && chown omsagent:omiusers /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/apache_logs.conf \
             && cp /etc/opt/microsoft/omsagent/sysconf/omsagent.d/mysql_logs.conf /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/mysql_logs.conf \
             && chown omsagent:omiusers /etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/mysql_logs.conf'.format(workspace_id))
-    replace_items('/etc/opt/microsoft/omsagent/{0}/conf/omsagent.conf'.format(workspace_id), '<workspace-id>', workspace_id)
-    replace_items('/etc/opt/microsoft/omsagent/{0}/conf/omsagent.d/customlog.conf'.format(workspace_id), '<workspace-id>', workspace_id)
 
 def apache_mysql_conf():
     """Configure Apache and MySQL, set up empty log files, and add permissions."""
@@ -269,7 +259,7 @@ def inject_logs():
 def config_start_oms_services():
     """Orchestrate overall configuration prior to agent start."""
     os.system('/opt/omi/bin/omiserver -d')
-    disable_dsc()
+    run_dsc()
     copy_config_files()
     apache_mysql_conf()
 
@@ -286,13 +276,13 @@ def append_file(filename, destFile):
     destFile.write(f.read())
     f.close()
 
-def exec_command(cmd):
+def exec_command(cmd, stderr=None, shell=True):
     """Run the provided command, check, and return its output."""
     try:
-        out = subprocess.check_output(cmd, shell=True)
+        out = subprocess.check_output(cmd, stderr=stderr, shell=shell)
         return out
     except subprocess.CalledProcessError as e:
-        print(e.returncode)
+        print('exec_command cmd="{0}" failed with code={1}, msg="{2}"'.format(cmd, e.returncode, e.output))
         return e.returncode
 
 def write_log_output(log, out):
