@@ -46,8 +46,8 @@ images_list = { 'ubuntu14': 'Canonical:UbuntuServer:14.04.5-LTS:14.04.201808180'
          'centos7': 'OpenLogic:CentOS:7.5:latest',
          # 'oracle6': 'Oracle:Oracle-Linux:6.9:latest',
          'oracle7': 'Oracle:Oracle-Linux:7.5:latest',
-         'sles12': 'SUSE:SLES:12-SP3:latest',
-         'sles15': 'SUSE:SLES:15:latest'}
+         'sles12': 'SUSE:SLES-12-SP5:gen1:latest',
+         'sles15': 'SUSE:SLES-15-SP1:gen1:latest'}
 
 vmnames = []
 images = {}
@@ -111,12 +111,12 @@ if parameters['old version']:
 
 # Sometimes Azure VM images become unavailable or are unavailable in certain regions, lets check ...
 for distname, image in images.iteritems():
-    img_publisher, _, sku, _ = image.split(':')
-    if subprocess.check_output('az vm image list --all --location {0} --publisher {1} --sku {2}'.format(location, img_publisher, sku), shell=True) == '[]\n':
+    img_publisher, offer, sku, _ = image.split(':')
+    if subprocess.check_output('az vm image list --all --location {0} --publisher {1} --offer {2} --sku {3}'.format(location, img_publisher, offer, sku), shell=True) == '[]\n':
         print('Could not find image for {0} in {1}, please double check VM image availability'.format(distname, location))
         exit()
     else:
-        print('VM image availability successfully validated')
+        print('VM image availability for {0} successfully validated'.format(image))
 
 # Detect the host system and validate nsg
 if system() == 'Windows':

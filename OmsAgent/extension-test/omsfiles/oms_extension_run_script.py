@@ -180,11 +180,10 @@ def enable_dsc():
 
 def run_dsc():
     """Run DSC to pull the workspace configuration."""
-    print('Pulling configuration from DSC ...')
     cmd = 'sudo su omsagent -c "python /opt/microsoft/omsconfig/Scripts/PerformRequiredConfigurationChecks.py"'
+    write_log_command(open_file, cmd)
     output = exec_command(cmd, stderr=subprocess.STDOUT)
-    write_log_command(cmd)
-    write_log_output(output)
+    write_log_output(open_file, output)
 
 def copy_config_files():
     """Convert, copy, and set permissions for agent configuration files."""
@@ -393,7 +392,7 @@ def service_control_commands():
 
 def write_html():
     """Use stored command results to create an HTML report of the test results."""
-    os.system('rm /home/scratch/omsresults.html')
+    os.system('rm -f /home/scratch/omsresults.html')
     html_file = '/home/scratch/omsresults.html'
     f = open(html_file, 'w+')
     message = """
