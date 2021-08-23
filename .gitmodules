@@ -7,3 +7,5 @@
 [submodule "VMEncryption/six"]
 	path = VMEncryption/six
 	url = https://github.com/benjaminp/six
+[submodule "src/SinglePass"]
+	branch = ade-spd-minor-distro-support
